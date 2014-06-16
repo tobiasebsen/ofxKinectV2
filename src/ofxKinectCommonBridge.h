@@ -174,6 +174,7 @@ class ofxKinectCommonBridge : protected ofThread {
 
 	bool bNeedsUpdateBodyIndex;
 
+	bool bVideoIsColor;
 	bool bVideoIsInfrared;
 	bool bUsingSkeletons;
 	bool bUsingDepth;

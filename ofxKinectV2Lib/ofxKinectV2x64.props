@@ -22,7 +22,7 @@
       <AdditionalLibraryDirectories>..\..\..\addons\ofxKinectV2\libs\KCBv2\lib\x64;$(KINECTSDK20_DIR)\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>
-      <Command>xcopy /e /i /y "$(ProjectDir)..\..\..\export\vs\*.dll" "$(ProjectDir)bin"
+      <Command>xcopy /e /i /y "$(ProjectDir)..\..\..\export\vs64\*.dll" "$(ProjectDir)bin"
 xcopy /e /i /y "$(ProjectDir)..\..\..\addons\ofxKinectV2\libs\KCBv2\lib\x64\*.dll" "$(ProjectDir)bin"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

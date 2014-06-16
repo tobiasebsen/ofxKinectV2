@@ -20,6 +20,7 @@ ofxKinectCommonBridge::ofxKinectCommonBridge(){
 	bIsFrameNewDepth = false;
 	bNeedsUpdateDepth = false;
 	bVideoIsInfrared = false;
+	bVideoIsColor = false;
 	bInited = false;
 	bStarted = false;
 
@@ -137,7 +138,7 @@ void ofxKinectCommonBridge::update()
 					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_LUMINANCE16);
 				}
 			} 
-			else 
+			else if(bVideoIsColor)
 			{
 				if( bProgrammableRenderer ) {
 					// programmable renderer likes this
@@ -487,6 +488,9 @@ bool ofxKinectCommonBridge::initColorStream( bool mapColorToDepth, ColorImageFor
 	pColorFrameBack->Size = colorFrameDescription.lengthInPixels * colorFrameDescription.bytesPerPixel;
 	pColorFrameBack->Format = format;
 
+	bVideoIsColor = true;
+	bVideoIsInfrared = false;
+
 	//HRESULT hr = KCBCreateColorFrame(ColorImageFormat_Rgba, colorFrameDescription, &pColorFrame);
 	return true;
 }
@@ -499,6 +503,7 @@ bool ofxKinectCommonBridge::initIRStream( int width, int height )
 	}
 
 	bVideoIsInfrared = true;
+	bVideoIsColor = false;
 
 	KCBGetInfraredFrameDescription(hKinect, &irFrameDescription);
 
@@ -705,7 +710,7 @@ void ofxKinectCommonBridge::threadedFunction(){
 				}
 			}
 		}
-		else
+		else if(bVideoIsColor)
 		{
 			if (SUCCEEDED(KCBGetColorFrame(hKinect, pColorFrame)))
 			{
