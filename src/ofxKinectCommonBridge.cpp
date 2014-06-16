@@ -172,7 +172,7 @@ void ofxKinectCommonBridge::update()
 
 		for(int i = 0; i < depthPixels.getWidth()*depthPixels.getHeight(); i++) {
 			depthPixelsRaw.getPixels()[i] = pDepthFrame->Buffer[i] >> 4;
-			depthPixels[i] = depthLookupTable[ofClamp(depthPixelsRaw.getPixels()[i], 0, depthLookupTable.size() - 1)];
+			depthPixels.getPixels()[i]    = depthLookupTable[ofClamp(depthPixelsRaw.getPixels()[i], 0, depthLookupTable.size() - 1)];
 		}
 
 		if(bUseTexture) {
@@ -419,11 +419,12 @@ bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 		depthPixelsBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
 	}
 
-	depthPixelsRaw.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
+	depthPixelsRawFront.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
 	depthPixelsRawBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
+	depthPixelsRaw.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
 
 	pDepthFrame = new KCBDepthFrame();
-	pDepthFrame->Buffer = depthPixelsRaw.getPixels();
+	pDepthFrame->Buffer = depthPixelsRawFront.getPixels();
 	pDepthFrame->Size = depthFrameDescription.lengthInPixels;
 
 	pDepthFrameBack = new KCBDepthFrame();
@@ -436,11 +437,9 @@ bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 			//int w, int h, int glInternalFormat, bool bUseARBExtention, int glFormat, int pixelType
 			depthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_R8);//, true, GL_R8, GL_UNSIGNED_BYTE);
 			depthTex.setRGToRGBASwizzles(true);
-
 			rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_R16, true, GL_RED, GL_UNSIGNED_SHORT);
 			/*rawDepthTex.allocate(depthPixelsRaw, true);
 			rawDepthTex.setRGToRGBASwizzles(true);
-
 			*/ 
 			
 			//cout << rawDepthTex.getWidth() << " " << rawDepthTex.getHeight() << endl;
@@ -637,7 +636,6 @@ vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(vector<ofPoint>& depth
 	vector<UINT16> depths;
 	vector<CameraSpacePoint> skeletonPoints;
 	
-	
 	int depthArraySize = depthFrameDescription.width * depthFrameDescription.height;
 	depthPixels.resize(depthArraySize);
 	depths.resize(depthArraySize);
@@ -773,16 +771,25 @@ vector<ofVec3f> ofxKinectCommonBridge::mapColorToSkeleton(vector<ofPoint>& color
 //----------------------------------------------------------
 void ofxKinectCommonBridge::stop() {
 	if(bStarted){
+		
 		waitForThread(true);
+
 		bStarted = false;
 
 		KCBCloseSensor(&hKinect);
 
 		//delete pBodies; //KCBReleaseBodyFrame(&pBodyFrame);
 		KCBReleaseBodyIndexFrame(&pBodyIndexFrame);
+
 		KCBReleaseColorFrame(&pColorFrame);
+		KCBReleaseColorFrame(&pColorFrameBack);
+
 		KCBReleaseDepthFrame(&pDepthFrame);
+		KCBReleaseDepthFrame(&pDepthFrameBack);
+
 		KCBReleaseInfraredFrame(&pInfraredFrame);
+		KCBReleaseInfraredFrame(&pInfraredFrameBack);
+
 		//KCBReleaseLongExposureInfraredFrame(_Inout_ KCBLongExposureInfraredFrame** pLongExposureInfraredFrame);
 
 	}
