@@ -171,8 +171,8 @@ void ofxKinectCommonBridge::update()
 		bNeedsUpdateDepth = false;
 
 		for(int i = 0; i < depthPixels.getWidth()*depthPixels.getHeight(); i++) {
-			depthPixels[i] = depthLookupTable[ofClamp(pDepthFrame->Buffer[i] >> 4, 0, depthLookupTable.size() - 1)];
-			pDepthFrame->Buffer[i] = pDepthFrame->Buffer[i] >> 4;
+			depthPixelsRaw.getPixels()[i] = pDepthFrame->Buffer[i] >> 4;
+			depthPixels[i] = depthLookupTable[ofClamp(depthPixelsRaw.getPixels()[i], 0, depthLookupTable.size() - 1)];
 		}
 
 		if(bUseTexture) {
