@@ -437,15 +437,20 @@ bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 			depthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_R8);//, true, GL_R8, GL_UNSIGNED_BYTE);
 			depthTex.setRGToRGBASwizzles(true);
 
-			//rawDepthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_R16, true, GL_RED, GL_UNSIGNED_SHORT);
+			rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_R16, true, GL_RED, GL_UNSIGNED_SHORT);
 			/*rawDepthTex.allocate(depthPixelsRaw, true);
 			rawDepthTex.setRGToRGBASwizzles(true);
 
-			cout << rawDepthTex.getWidth() << " " << rawDepthTex.getHeight() << endl;*/
+			*/ 
+			
+			//cout << rawDepthTex.getWidth() << " " << rawDepthTex.getHeight() << endl;
 			//depthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_RGB);
 		} else {
+
 			depthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE);
 			rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16);
+
+	
 		}
 	}
 	
