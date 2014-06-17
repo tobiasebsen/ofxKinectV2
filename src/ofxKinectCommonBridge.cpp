@@ -29,6 +29,7 @@ ofxKinectCommonBridge::ofxKinectCommonBridge(){
 
 	bUsingSkeletons = false;
   	bUseTexture = true;
+	bUseFloatTexture = false;
 	bProgrammableRenderer = false;
 	
 	setDepthClipping();
@@ -107,13 +108,20 @@ bool ofxKinectCommonBridge::isNewSkeleton() {
 	return bNeedsUpdateSkeleton;
 }
 
-//vector<Skeleton> &ofxKinectCommonBridge::getSkeletons() {
-//	return skeletons;
-//}
+void ofxKinectCommonBridge::checkOpenGLError(string function){
+    GLuint err = glGetError();
+    if (err != GL_NO_ERROR){
+        ofLogError( "CloudsVisualSystem::checkOpenGLErrors") << "OpenGL generated error " << ofToString(err) << " : " << gluErrorString(err) << " in " << function;
+    }
+}
+
 /// updates the pixel buffers and textures
 /// make sure to call this to update to the latest incoming frames
 void ofxKinectCommonBridge::update()
 {
+
+	checkOpenGLError("KCB:: UPDATE BEGAN");
+
 	if(!bStarted)
 	{
 		ofLogError("ofxKinectCommonBridge::update") << "Kinect not started";
@@ -142,9 +150,6 @@ void ofxKinectCommonBridge::update()
 			{
 				if( bProgrammableRenderer ) {
 					// programmable renderer likes this
-					// TODO
-					// swizzle this to rgb & a -> GL_ONE
-					//videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
 					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_RG16);
 				} else {
 					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_RGBA);
@@ -155,6 +160,7 @@ void ofxKinectCommonBridge::update()
 		bIsFrameNewVideo = false;
 	}
 
+	checkOpenGLError("KCB:: VIDEO");
 
 	// update depth pixels and texture if necessary
 	if(bNeedsUpdateDepth)
@@ -173,12 +179,26 @@ void ofxKinectCommonBridge::update()
 		for(int i = 0; i < depthPixels.getWidth()*depthPixels.getHeight(); i++) {
 			depthPixelsRaw.getPixels()[i] = pDepthFrame->Buffer[i] >> 4;
 			depthPixels.getPixels()[i]    = depthLookupTable[ofClamp(depthPixelsRaw.getPixels()[i], 0, depthLookupTable.size() - 1)];
+			if(bUseFloatTexture){
+				depthPixelsNormalized.getPixels()[i] =  depthPixelsRaw.getPixels()[i] / 65535.0f;
+			}
 		}
 
 		if(bUseTexture) {
 			if( bProgrammableRenderer ) {
 				depthTex.loadData(depthPixels.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_RED);
-				rawDepthTex.loadData(depthPixelsRaw.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE_INTEGER_EXT /*GL_RED*/);
+				checkOpenGLError("KCB:: BEFORE LOAD DEPTH");
+				if(bUseFloatTexture){
+					rawDepthTex.loadData(depthPixelsNormalized.getPixels(),depthFrameDescription.width, depthFrameDescription.height, GL_RED);
+				}
+				else{			
+					rawDepthTex.loadData(depthPixelsRaw.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE_INTEGER_EXT );
+				}
+				//FAILED ALTERNATIVES
+				//rawDepthTex.loadData(depthPixelsRaw.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_RED);
+				//rawDepthTex.loadData(depthPixelsRaw.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_RED_INTEGER);
+				checkOpenGLError("KCB:: AFTER LOAD DEPTH");
+
 			} else {
 				depthTex.loadData(depthPixels.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE);
 				rawDepthTex.loadData(pDepthFrame->Buffer, depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16);
@@ -188,14 +208,14 @@ void ofxKinectCommonBridge::update()
 		bIsFrameNewDepth = false;
 	}
 
+	checkOpenGLError("KCB:: DEPTH");
+
 	// update skeletons if necessary
 	if(bUsingSkeletons && bNeedsUpdateSkeleton)
 	{	
 		swap(skeletons, backSkeletons);
 		bNeedsUpdateSkeleton = false;
-
 	} 
-
 
 	if (bNeedsUpdateBodyIndex)
 	{
@@ -213,6 +233,8 @@ void ofxKinectCommonBridge::update()
 
 		bNeedsUpdateBodyIndex = false;
 	}
+
+	checkOpenGLError("KCB:: SKELETON");
 }
 
 //------------------------------------
@@ -233,6 +255,10 @@ ofShortPixels & ofxKinectCommonBridge::getRawDepthPixelsRef(){
 //------------------------------------
 void ofxKinectCommonBridge::setUseTexture(bool bUse){
 	bUseTexture = bUse;
+}
+
+void ofxKinectCommonBridge::setRawTextureUsesFloats(bool bUseRawFloat){
+	bUseFloatTexture = true;
 }
 
 //----------------------------------------------------------
@@ -422,6 +448,7 @@ bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 	depthPixelsRawFront.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
 	depthPixelsRawBack.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
 	depthPixelsRaw.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
+	depthPixelsNormalized.allocate(depthFrameDescription.width, depthFrameDescription.height, OF_IMAGE_GRAYSCALE);
 
 	pDepthFrame = new KCBDepthFrame();
 	pDepthFrame->Buffer = depthPixelsRawFront.getPixels();
@@ -437,11 +464,28 @@ bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 			//int w, int h, int glInternalFormat, bool bUseARBExtention, int glFormat, int pixelType
 			depthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_R8);//, true, GL_R8, GL_UNSIGNED_BYTE);
 			depthTex.setRGToRGBASwizzles(true);
-			rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16UI_EXT, true, GL_LUMINANCE_INTEGER_EXT, GL_UNSIGNED_SHORT);
-			/*rawDepthTex.allocate(depthPixelsRaw, true);
-			*/ 
-			//rawDepthTex.setRGToRGBASwizzles(true);
-			
+
+			checkOpenGLError("ERROR ALLOCATING NORMAL DEPTH");
+			if(bUseFloatTexture){
+				//WORKS ON ALL CARDS SO FAR
+				rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_R32F);
+			}
+			else{
+				//WORKS SOMETIMES BUT FAILS ON SOME CARDS (Iris 5200)
+				//shader then requires 
+				//	#extension GL_EXT_gpu_shader4 : enable  
+				//	and sampler to be usampler2D
+				rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16UI_EXT, true, GL_LUMINANCE_INTEGER_EXT, GL_UNSIGNED_SHORT);
+			}
+			checkOpenGLError("ERROR ALLOCATING RAW DEPTH");
+
+			//failed alternatives....
+			//WORKS BUT IS CLAMPED
+			//rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_R16, true, GL_RED, GL_UNSIGNED_SHORT);
+			//THROWS NO ERRORS BUT CANT BE DRAWN
+			//rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_R16UI, true, GL_RED_INTEGER , GL_UNSIGNED_SHORT);
+			//depthTex.setRGToRGBASwizzles(true);			
+
 			//cout << rawDepthTex.getWidth() << " " << rawDepthTex.getHeight() << endl;
 			//depthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_RGB);
 		} else {

@@ -83,6 +83,9 @@ class ofxKinectCommonBridge : protected ofThread {
 
 	/// enable/disable frame loading into textures on update()
 	void setUseTexture(bool bUse);
+	/// In the programmable renderer, this will switch the raw texture over to using GL_R32F as opposed to GL_LUMINANCE16UI_EXT
+	/// This was because I was experiencing issues on some cards and the unsigned int extensions
+	void setRawTextureUsesFloats(bool bUseRawFloat);
 
 	/// draw the video texture
 	void draw(float x, float y, float w, float h);
@@ -130,14 +133,13 @@ class ofxKinectCommonBridge : protected ofThread {
 	vector<ofVec3f> mapColorToSkeleton(vector<ofPoint>& colorPoints, ofShortPixels& depthImage);
 	*/
 
+	//will either be GL_R32F or GL_LUMINANCE16UI_EXT depending on texture setting
 	ofTexture &getRawDepthTexture() {
 		return rawDepthTex;
 	}
-
 	ofTexture &getDepthTexture() {
 		return depthTex;
 	}
-
 	ofTexture &getColorTexture() {
 		return videoTex;
 	}
@@ -145,9 +147,7 @@ class ofxKinectCommonBridge : protected ofThread {
   protected:
 
     KCBHANDLE hKinect;
-	//KINECT_IMAGE_FRAME_FORMAT depthFormat;
 	ColorImageFormat colorFormat;
-	//NUI_SKELETON_FRAME k4wSkeletons;
 
   	bool bInited;
 	bool bStarted;
@@ -163,11 +163,12 @@ class ofxKinectCommonBridge : protected ofThread {
 	float nearClipping, farClipping;
 
   	bool bUseTexture;
+	bool bUseFloatTexture;
+
 	ofTexture depthTex; ///< the depth texture
 	ofTexture rawDepthTex; ///<
 	ofTexture videoTex; ///< the RGB texture
 	ofTexture bodyIndexTex;
-	//ofTexture irTex;
 
 	ofPixels videoPixels;
 	ofPixels videoPixelsBack;			///< rgb back
@@ -176,7 +177,8 @@ class ofxKinectCommonBridge : protected ofThread {
 	ofShortPixels depthPixelsRaw;
 	ofShortPixels depthPixelsRawBack;	///< depth back
 	ofShortPixels depthPixelsRawFront;
-
+	ofFloatPixels depthPixelsNormalized;
+	
 	ofShortPixels irPixelsRaw;
 	ofShortPixels irPixelsBackRaw;
 	ofPixels irPixels;
@@ -225,4 +227,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	KCBFrameDescription bodyIndexFrameDescription;
 
 	pair<JointType, JointType> skeletonDrawOrder[JointType_Count];
+
+	void checkOpenGLError(string function);
+
 };
