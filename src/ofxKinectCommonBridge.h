@@ -53,6 +53,7 @@ class ofxKinectCommonBridge : protected ofThread {
   public:
 	
 	ofxKinectCommonBridge();
+	~ofxKinectCommonBridge();
 
 	// new API
 	bool initSensor( int id = 0 );

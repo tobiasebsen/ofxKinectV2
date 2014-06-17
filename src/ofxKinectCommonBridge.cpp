@@ -70,6 +70,11 @@ ofxKinectCommonBridge::ofxKinectCommonBridge(){
 
 }
 
+ofxKinectCommonBridge::~ofxKinectCommonBridge(){
+	stop();
+}
+
+
 //---------------------------------------------------------------------------
 void ofxKinectCommonBridge::setDepthClipping(float nearClip, float farClip){
 	nearClipping = nearClip;
@@ -111,7 +116,7 @@ bool ofxKinectCommonBridge::isNewSkeleton() {
 void ofxKinectCommonBridge::checkOpenGLError(string function){
     GLuint err = glGetError();
     if (err != GL_NO_ERROR){
-        ofLogError( "CloudsVisualSystem::checkOpenGLErrors") << "OpenGL generated error " << ofToString(err) << " : " << gluErrorString(err) << " in " << function;
+        //ofLogError( "CloudsVisualSystem::checkOpenGLErrors") << "OpenGL generated error " << ofToString(err) << " : " << gluErrorString(err) << " in " << function;
     }
 }
 
@@ -677,14 +682,14 @@ vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(vector<ofPoint>& depth
 vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(vector<ofPoint>& depthPoints, ofShortPixels& depthImage){
 	vector<DepthSpacePoint> depthPixels;
 	vector<UINT16> depths;
-	vector<CameraSpacePoint> skeletonPoints;
+	vector<CameraSpacePoint> cameraPoints;
 	
 	int depthArraySize = depthFrameDescription.width * depthFrameDescription.height;
 	depthPixels.resize(depthArraySize);
 	depths.resize(depthArraySize);
-	skeletonPoints.resize(depthArraySize);
+	cameraPoints.resize(depthArraySize);
 
-	for(int y = 0; y <  depthFrameDescription.height; y++){
+	for(int y = 0; y < depthFrameDescription.height; y++){
 		for(int x = 0; x < depthFrameDescription.width; x++) {
 			int i = y*depthFrameDescription.width+x;
 			depths[i] = (UINT16)depthImage.getPixels()[i];
@@ -697,11 +702,11 @@ vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(vector<ofPoint>& depth
 	mapResult = KCBMapDepthPointsToCameraSpace(hKinect, 
 		depthArraySize, &depthPixels[0],
 		depthArraySize, &depths[0],
-		depthArraySize, &skeletonPoints[0]);
+		depthArraySize, &cameraPoints[0]);
 	
 	vector<ofVec3f> points;
 	for(int i = 0; i < depthPoints.size(); i++){
-		CameraSpacePoint& p = skeletonPoints[int(depthPoints[i].y) * depthFrameDescription.width + int(depthPoints[i].x)]; 
+		CameraSpacePoint& p = cameraPoints[int(depthPoints[i].y) * depthFrameDescription.width + int(depthPoints[i].x)]; 
 		points.push_back( ofVec3f(p.X,p.Y,p.Z) );
 	}
 	return points;
