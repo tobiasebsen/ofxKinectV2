@@ -440,7 +440,7 @@ bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 			rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16UI_EXT, true, GL_LUMINANCE_INTEGER_EXT, GL_UNSIGNED_SHORT);
 			/*rawDepthTex.allocate(depthPixelsRaw, true);
 			*/ 
-			rawDepthTex.setRGToRGBASwizzles(true);
+			//rawDepthTex.setRGToRGBASwizzles(true);
 			
 			//cout << rawDepthTex.getWidth() << " " << rawDepthTex.getHeight() << endl;
 			//depthTex.allocate(K2_IR_WIDTH, K2_IR_HEIGHT, GL_RGB);
