@@ -177,7 +177,7 @@ void ofxKinectCommonBridge::update()
 		bNeedsUpdateDepth = false;
 
 		for(int i = 0; i < depthPixels.getWidth()*depthPixels.getHeight(); i++) {
-			depthPixelsRaw.getPixels()[i] = pDepthFrame->Buffer[i] >> 4;
+			depthPixelsRaw.getPixels()[i] = pDepthFrame->Buffer[i];
 			depthPixels.getPixels()[i]    = depthLookupTable[ofClamp(depthPixelsRaw.getPixels()[i], 0, depthLookupTable.size() - 1)];
 			if(bUseFloatTexture){
 				depthPixelsNormalized.getPixels()[i] =  depthPixelsRaw.getPixels()[i] / 65535.0f;
@@ -198,7 +198,6 @@ void ofxKinectCommonBridge::update()
 				//rawDepthTex.loadData(depthPixelsRaw.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_RED);
 				//rawDepthTex.loadData(depthPixelsRaw.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_RED_INTEGER);
 				checkOpenGLError("KCB:: AFTER LOAD DEPTH");
-
 			} else {
 				depthTex.loadData(depthPixels.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE);
 				rawDepthTex.loadData(pDepthFrame->Buffer, depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16);
