@@ -28,6 +28,7 @@ ofxKinectCommonBridge::ofxKinectCommonBridge(){
 	mappingDepthToColor = false;
 
 	bUsingSkeletons = false;
+	bUsingDepth = false;
   	bUseTexture = true;
 	bUseFloatTexture = false;
 	bProgrammableRenderer = false;
@@ -501,7 +502,7 @@ bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 		}
 	}
 	
-	
+	bUsingDepth = true;
 	return bInited;
 }
 
@@ -853,7 +854,7 @@ void ofxKinectCommonBridge::threadedFunction(){
 
 		// KCBAllFramesReady
 		//lock();
-			if (SUCCEEDED(KCBGetDepthFrame(hKinect, pDepthFrame)))
+			if (bUsingDepth && SUCCEEDED(KCBGetDepthFrame(hKinect, pDepthFrame)))
 			{
 				bNeedsUpdateDepth = true;
 			}
