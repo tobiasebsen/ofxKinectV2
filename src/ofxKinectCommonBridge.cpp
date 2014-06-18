@@ -140,20 +140,19 @@ void ofxKinectCommonBridge::update()
 		bIsFrameNewVideo = true;
 		bNeedsUpdateVideo = false;
 
-		//swap(videoPixelsBack, videoPixels);
-		swap(pColorFrame, pColorFrameBack);
-
 		if(bUseTexture) {
 			if(bVideoIsInfrared) 
 			{
+				swap(pInfraredFrame, pInfraredFrameBack);
 				if(bProgrammableRenderer){
-					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_RED);
+					videoTex.loadData(pInfraredFrame->Buffer, irFrameDescription.width, irFrameDescription.height, GL_RED);
 				} else {
-					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_LUMINANCE16);
+					videoTex.loadData(pInfraredFrame->Buffer, irFrameDescription.width, irFrameDescription.height, GL_LUMINANCE16);
 				}
 			} 
 			else if(bVideoIsColor)
 			{
+				swap(pColorFrame, pColorFrameBack);
 				if( bProgrammableRenderer ) {
 					// programmable renderer likes this
 					videoTex.loadData(pColorFrame->Buffer, colorFrameDescription.width, colorFrameDescription.height, GL_RG16);
@@ -197,7 +196,7 @@ void ofxKinectCommonBridge::update()
 				if(bUseFloatTexture){
 					rawDepthTex.loadData(depthPixelsNormalized.getPixels(),depthFrameDescription.width, depthFrameDescription.height, GL_RED);
 				}
-				else{			
+				else{
 					rawDepthTex.loadData(depthPixelsRaw.getPixels(), depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE_INTEGER_EXT );
 				}
 				//FAILED ALTERNATIVES
@@ -275,7 +274,11 @@ void ofxKinectCommonBridge::draw(float _x, float _y, float _w, float _h) {
 
 //----------------------------------------------------------
 void ofxKinectCommonBridge::draw(float _x, float _y) {
-	draw(_x, _y, colorFrameDescription.width, colorFrameDescription.height);
+	if (bVideoIsColor){
+		draw(_x, _y, colorFrameDescription.width, colorFrameDescription.height);
+	} else if (bVideoIsInfrared){
+		draw(_x, _y, irFrameDescription.width, irFrameDescription.height);
+	}
 }
 
 //----------------------------------------------------------
@@ -558,7 +561,7 @@ bool ofxKinectCommonBridge::initColorStream( bool mapColorToDepth, ColorImageFor
 	return true;
 }
 
-bool ofxKinectCommonBridge::initIRStream( int width, int height )
+bool ofxKinectCommonBridge::initIRStream()
 {
 	if(bStarted){
 		ofLogError("ofxKinectCommonBridge::startIRStream") << " Cannot configure when the sensor has already started";
@@ -571,6 +574,7 @@ bool ofxKinectCommonBridge::initIRStream( int width, int height )
 	KCBGetInfraredFrameDescription(hKinect, &irFrameDescription);
 
 	irPixelsRaw.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
+	irPixelsBackRaw.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
 
 	pInfraredFrameBack = new KCBInfraredFrame();
 	pInfraredFrameBack->Buffer = irPixelsBackRaw.getPixels();
@@ -592,7 +596,6 @@ bool ofxKinectCommonBridge::initIRStream( int width, int height )
 	}
 
 	bInited = true;
-	ofLogError("ofxKinectCommonBridge::initIRStream") << "cannot initialize stream";
 	return true;
 }
 
@@ -930,11 +933,6 @@ void ofxKinectCommonBridge::threadedFunction(){
 			if (SUCCEEDED(KCBGetInfraredFrame(hKinect, pInfraredFrame)))
 			{
 				bNeedsUpdateVideo = true;
-				// do we need to do this anymore?
-				for (int i = 0; i <colorFrameDescription.width * colorFrameDescription.height; i++)
-				{
-					videoPixels.getPixels()[i] = reinterpret_cast<USHORT*>(irPixelByteArray)[i] >> 8;
-				}
 			}
 		}
 		else if(bVideoIsColor)
