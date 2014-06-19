@@ -144,6 +144,7 @@ void ofxKinectCommonBridge::update()
 			if(bVideoIsInfrared) 
 			{
 				swap(pInfraredFrame, pInfraredFrameBack);
+				memcpy(irPixels.getPixels(), pInfraredFrame->Buffer, pInfraredFrame->Size*sizeof(short));
 				if(bProgrammableRenderer){
 					videoTex.loadData(pInfraredFrame->Buffer, irFrameDescription.width, irFrameDescription.height, GL_RED);
 				} else {
@@ -243,6 +244,9 @@ void ofxKinectCommonBridge::update()
 
 //------------------------------------
 ofPixels& ofxKinectCommonBridge::getColorPixelsRef(){
+	if(!bVideoIsColor){
+		ofLogWarning("ofxKinectCommonBridge::getColorPixelsRef") << "Getting Color Pixels when color stream unitialized";
+	}
 	return videoPixels;
 }
 
@@ -254,6 +258,14 @@ ofPixels & ofxKinectCommonBridge::getDepthPixelsRef(){       	///< grayscale val
 //------------------------------------
 ofShortPixels & ofxKinectCommonBridge::getRawDepthPixelsRef(){
 	return depthPixelsRaw;
+}
+
+//------------------------------------
+ofShortPixels& ofxKinectCommonBridge::getIRPixelsRef(){
+	if(!bVideoIsInfrared){
+		ofLogWarning("ofxKinectCommonBridge::getIRPixelsRef") << "Getting IR Pixels with IR stream unitialized";
+	}
+	return irPixels;
 }
 
 //------------------------------------
@@ -573,15 +585,16 @@ bool ofxKinectCommonBridge::initIRStream()
 
 	KCBGetInfraredFrameDescription(hKinect, &irFrameDescription);
 
-	irPixelsRaw.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
-	irPixelsBackRaw.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
+	irPixelsFront.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
+	irPixelsBack.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
+	irPixels.allocate(irFrameDescription.width, irFrameDescription.height, OF_IMAGE_GRAYSCALE);
 
 	pInfraredFrameBack = new KCBInfraredFrame();
-	pInfraredFrameBack->Buffer = irPixelsBackRaw.getPixels();
+	pInfraredFrameBack->Buffer = irPixelsBack.getPixels();
 	pInfraredFrameBack->Size = irFrameDescription.lengthInPixels;
 
 	pInfraredFrame = new KCBInfraredFrame();
-	pInfraredFrame->Buffer = irPixelsRaw.getPixels();
+	pInfraredFrame->Buffer = irPixelsFront.getPixels();
 	pInfraredFrame->Size = irFrameDescription.lengthInPixels;
 
 	if(bUseTexture)
@@ -716,6 +729,7 @@ vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(vector<ofPoint>& depth
 	return points;
 }
 
+//TODO
 /*
 //----------------------------------------------------------
 ofVec2f ofxKinectCommonBridge::mapColorToDepth(ofPoint colorPoint){

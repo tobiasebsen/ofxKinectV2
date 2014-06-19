@@ -78,9 +78,11 @@ class ofxKinectCommonBridge : protected ofThread {
 	///
 	/// make sure to call this to update to the latest incoming frames
 	void update();
+
 	ofPixels& getColorPixelsRef();
-	ofPixels & getDepthPixelsRef();       	///< grayscale values
-	ofShortPixels & getRawDepthPixelsRef();	///< raw 11 bit values
+	ofPixels& getDepthPixelsRef();       	///< grayscale values
+	ofShortPixels& getRawDepthPixelsRef();	///< raw 11 bit values
+	ofShortPixels& getIRPixelsRef();
 
 	/// enable/disable frame loading into textures on update()
 	void setUseTexture(bool bUse);
@@ -123,6 +125,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	vector<ofVec3f> mapDepthToSkeleton(vector<ofPoint>& depthPoints, ofShortPixels& depthImage);
 	
 	/*
+	///TODO
 	ofVec2f mapColorToDepth(ofPoint colorPoint);
 	ofVec2f mapColorToDepth(ofPoint colorPoint, ofShortPixels& depthImage);
 	vector<ofVec2f> mapColorToDepth(vector<ofPoint>& colorPoints);
@@ -180,10 +183,9 @@ class ofxKinectCommonBridge : protected ofThread {
 	ofShortPixels depthPixelsRawFront;
 	ofFloatPixels depthPixelsNormalized;
 	
-	ofShortPixels irPixelsRaw;
-	ofShortPixels irPixelsBackRaw;
-	ofPixels irPixels;
-	ofPixels irPixelsBack;
+	ofShortPixels irPixelsFront;
+	ofShortPixels irPixelsBack;
+	ofShortPixels irPixels;
 
 	ofPixels bodyIndexPixelsBack;
 	ofPixels bodyIndexPixels;
