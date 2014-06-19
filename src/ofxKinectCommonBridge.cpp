@@ -677,6 +677,30 @@ bool ofxKinectCommonBridge::start()
 	return true;
 }
 
+vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(){
+	//TODO: Cache these
+	vector<ofPoint> pt;
+	for(int y = 0; y < depthFrameDescription.height; y++){
+		for(int x = 0; x < depthFrameDescription.width; x++){
+			pt.push_back(ofPoint(x,y));
+		}
+	}
+
+	return mapDepthToSkeleton(pt);
+}
+
+vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(ofShortPixels& depthImage){
+	//TODO: Cache these
+	vector<ofPoint> pt;
+	for(int y = 0; y < depthFrameDescription.height; y++){
+		for(int x = 0; x < depthFrameDescription.width; x++){
+			pt.push_back(ofPoint(x,y));
+		}
+	}
+
+	return mapDepthToSkeleton(pt,depthImage);
+}
+
 ofVec3f ofxKinectCommonBridge::mapDepthToSkeleton(ofPoint depthPoint){
 	vector<ofPoint> pt;
 	pt.push_back(depthPoint);

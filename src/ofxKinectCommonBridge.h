@@ -108,19 +108,19 @@ class ofxKinectCommonBridge : protected ofThread {
 	void drawDepth(const ofPoint& point);
 	void drawDepth(const ofRectangle& rect);
 
-//	void drawIR( float x, float y, float w, float h );
-
 	void drawBodyIndex(float x, float y);
 
-	//vector<Skeleton> &getSkeletons();
 	void drawSkeleton(int index);
 	void drawSkeleton(int index, ofVec2f scale);
 
 	void drawAllSkeletons();
 	void drawAllSkeletons(ofVec2f scale);
 
+	//given 2d depthPoint(s) in the depth image space, what are the 3d world positions?
 	ofVec3f mapDepthToSkeleton(ofPoint depthPoint);
 	ofVec3f mapDepthToSkeleton(ofPoint depthPoint, ofShortPixels& depthImage);
+	vector<ofVec3f> mapDepthToSkeleton();
+	vector<ofVec3f> mapDepthToSkeleton(ofShortPixels& depthImage);
 	vector<ofVec3f> mapDepthToSkeleton(vector<ofPoint>& depthPoints);
 	vector<ofVec3f> mapDepthToSkeleton(vector<ofPoint>& depthPoints, ofShortPixels& depthImage);
 	
