@@ -106,7 +106,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	void drawDepth(const ofPoint& point);
 	void drawDepth(const ofRectangle& rect);
 
-	void drawIR( float x, float y, float w, float h );
+//	void drawIR( float x, float y, float w, float h );
 
 	void drawBodyIndex(float x, float y);
 
