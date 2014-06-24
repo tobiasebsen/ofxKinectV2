@@ -269,6 +269,16 @@ ofShortPixels& ofxKinectCommonBridge::getIRPixelsRef(){
 }
 
 //------------------------------------
+ofFloatPixels& ofxKinectCommonBridge::getFloatDepthPixelsRef(){
+	return depthPixelsNormalized;
+}
+
+//------------------------------------
+vector<Kv2Skeleton>& ofxKinectCommonBridge::getSkeletons(){
+	return skeletons;
+}
+
+//------------------------------------
 void ofxKinectCommonBridge::setUseTexture(bool bUse){
 	bUseTexture = bUse;
 }
@@ -426,7 +436,7 @@ void ofxKinectCommonBridge::drawSkeleton( int index, ofVec2f scale )
 }
 
 
-bool ofxKinectCommonBridge::initSensor( int id )
+bool ofxKinectCommonBridge::initSensor()
 {
 	if(bStarted){
 		ofLogError("ofxKinectCommonBridge::initSensor") << "Cannot configure once the sensor has already started" << endl;
@@ -894,12 +904,34 @@ void ofxKinectCommonBridge::threadedFunction(){
 	while(isThreadRunning()) {
 
 		// KCBAllFramesReady
-		//lock();
-			if (bUsingDepth && SUCCEEDED(KCBGetDepthFrame(hKinect, pDepthFrame)))
+		if (bUsingDepth && KCBIsFrameReady(hKinect, FrameSourceTypes_Depth) && SUCCEEDED(KCBGetDepthFrame(hKinect, pDepthFrame)))
+		{
+			bNeedsUpdateDepth = true;
+		}
+
+		if (bUsingBodyIndex)
+		{
+			
+			if (SUCCEEDED(KCBGetBodyIndexFrame(hKinect, pBodyIndexFrame)))
 			{
-				bNeedsUpdateDepth = true;
+				bNeedsUpdateBodyIndex = true;
 			}
-		//unlock();
+		}
+
+		if (bVideoIsInfrared)
+		{
+			if (SUCCEEDED(KCBGetInfraredFrame(hKinect, pInfraredFrame)))
+			{
+				bNeedsUpdateVideo = true;
+			}
+		}
+		else if(bVideoIsColor)
+		{
+			if (SUCCEEDED(KCBGetColorFrame(hKinect, pColorFrame)))
+			{
+				bNeedsUpdateVideo = true;
+			}
+		}
 
 		if(bUsingSkeletons) 
 		{
@@ -909,7 +941,6 @@ void ofxKinectCommonBridge::threadedFunction(){
 			if (SUCCEEDED(KCBGetIBodyFrame(hKinect, &pBodyFrame)))
 			{
 				HRESULT hr = pBodyFrame->GetAndRefreshBodyData(BODY_COUNT, ppBodies);
-				bNeedsUpdateSkeleton = true;
 
 				// buffer for later
 				for (int i = 0; i < BODY_COUNT; ++i)
@@ -949,38 +980,16 @@ void ofxKinectCommonBridge::threadedFunction(){
 						}
 						backSkeletons[i].tracked = true;
 					}
+
 					pBody->Release();
 				}
 
 				// all done clean up
 				pBodyFrame->Release();
-			}
-		}
+				bNeedsUpdateSkeleton = true;
 
-		if (bUsingBodyIndex)
-		{
-			
-			if (SUCCEEDED(KCBGetBodyIndexFrame(hKinect, pBodyIndexFrame)))
-			{
-				bNeedsUpdateBodyIndex = true;
 			}
 		}
-
-		if (bVideoIsInfrared)
-		{
-			if (SUCCEEDED(KCBGetInfraredFrame(hKinect, pInfraredFrame)))
-			{
-				bNeedsUpdateVideo = true;
-			}
-		}
-		else if(bVideoIsColor)
-		{
-			if (SUCCEEDED(KCBGetColorFrame(hKinect, pColorFrame)))
-			{
-				bNeedsUpdateVideo = true;
-			}
-		}
-
 		//TODO: TILT
 		//TODO: ACCEL
 		//TODO: FACE

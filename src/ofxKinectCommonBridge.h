@@ -56,7 +56,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	~ofxKinectCommonBridge();
 
 	// new API
-	bool initSensor( int id = 0 );
+	bool initSensor( );
 	bool initDepthStream( bool mapDepthToColor = false );
 	bool initColorStream(bool mapColorToDepth = false, ColorImageFormat format = ColorImageFormat_Rgba);
 	bool initIRStream();
@@ -82,7 +82,9 @@ class ofxKinectCommonBridge : protected ofThread {
 	ofPixels& getColorPixelsRef();
 	ofPixels& getDepthPixelsRef();       	///< grayscale values
 	ofShortPixels& getRawDepthPixelsRef();	///< raw 11 bit values
+	ofFloatPixels& getFloatDepthPixelsRef();	///normalized 0 - 1, only works if setRawTextureUsesFloats is true
 	ofShortPixels& getIRPixelsRef();
+	vector<Kv2Skeleton>& getSkeletons();
 
 	/// enable/disable frame loading into textures on update()
 	void setUseTexture(bool bUse);
