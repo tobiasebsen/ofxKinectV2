@@ -218,7 +218,7 @@ void ofxKinectCommonBridge::update()
 	// update skeletons if necessary
 	if(bUsingSkeletons && bNeedsUpdateSkeleton)
 	{	
-		swap(skeletons, backSkeletons);
+		swap(backSkeletons, skeletons);
 		bNeedsUpdateSkeleton = false;
 	} 
 
@@ -274,7 +274,7 @@ ofFloatPixels& ofxKinectCommonBridge::getFloatDepthPixelsRef(){
 }
 
 //------------------------------------
-vector<Kv2Skeleton>& ofxKinectCommonBridge::getSkeletons(){
+vector<Kv2Skeleton> ofxKinectCommonBridge::getSkeletons(){
 	return skeletons;
 }
 

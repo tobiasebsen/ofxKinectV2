@@ -84,7 +84,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	ofShortPixels& getRawDepthPixelsRef();	///< raw 11 bit values
 	ofFloatPixels& getFloatDepthPixelsRef();	///normalized 0 - 1, only works if setRawTextureUsesFloats is true
 	ofShortPixels& getIRPixelsRef();
-	vector<Kv2Skeleton>& getSkeletons();
+	vector<Kv2Skeleton> getSkeletons();
 
 	/// enable/disable frame loading into textures on update()
 	void setUseTexture(bool bUse);
