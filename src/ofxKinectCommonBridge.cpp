@@ -442,8 +442,8 @@ bool ofxKinectCommonBridge::initSensor()
 		ofLogError("ofxKinectCommonBridge::initSensor") << "Cannot configure once the sensor has already started" << endl;
 		return false;
 	}
-	if (ofGetCurrentRenderer()->getType() == ofGLProgrammableRenderer::TYPE)
-	{
+
+	if (ofGetCurrentRenderer()->getType() == ofGLProgrammableRenderer::TYPE){
 		bProgrammableRenderer = true;
 	}
 
@@ -455,12 +455,18 @@ bool ofxKinectCommonBridge::initSensor()
 bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 {
 
-	mappingDepthToColor = mapDepthToColor;
-
-	if(bStarted){
-		ofLogError("ofxKinectCommonBridge::initDepthStream") << " Cannot configure once the sensor has already started";
+	if(hKinect == NULL){
+		ofLogError("ofxKinectCommonBridge::initDepthStream") << "Cannot init depth stream until initSensor() is called";
 		return false;
 	}
+
+	if(bStarted){
+		ofLogError("ofxKinectCommonBridge::initDepthStream") << "Cannot configure once the sensor has already started";
+		return false;
+	}
+
+	mappingDepthToColor = mapDepthToColor;
+
 
 	HRESULT hr;
 	hr = KCBGetDepthFrameDescription(hKinect, &depthFrameDescription);
@@ -522,8 +528,6 @@ bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 
 			depthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE);
 			rawDepthTex.allocate(depthFrameDescription.width, depthFrameDescription.height, GL_LUMINANCE16);
-
-	
 		}
 	}
 	
@@ -533,6 +537,11 @@ bool ofxKinectCommonBridge::initDepthStream( bool mapDepthToColor )
 
 bool ofxKinectCommonBridge::initColorStream( bool mapColorToDepth, ColorImageFormat format)
 {
+
+	if(hKinect == NULL){
+		ofLogError("ofxKinectCommonBridge::initDepthStream") << "Cannot init depth stream until initSensor() is called";
+		return false;
+	}
 
 	KCBGetColorFrameDescription(hKinect, ColorImageFormat_Rgba, &colorFrameDescription);
 
