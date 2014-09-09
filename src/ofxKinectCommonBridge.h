@@ -126,13 +126,15 @@ class ofxKinectCommonBridge : protected ofThread {
 	vector<ofVec3f> mapDepthToSkeleton(vector<ofPoint>& depthPoints);
 	vector<ofVec3f> mapDepthToSkeleton(vector<ofPoint>& depthPoints, ofShortPixels& depthImage);
 	
-	/*
-	///TODO
-	ofVec2f mapColorToDepth(ofPoint colorPoint);
-	ofVec2f mapColorToDepth(ofPoint colorPoint, ofShortPixels& depthImage);
-	vector<ofVec2f> mapColorToDepth(vector<ofPoint>& colorPoints);
-	vector<ofVec2f> mapColorToDepth(vector<ofPoint>& colorPoints, ofShortPixels& depthImage);
 	
+	ofVec2f mapDepthToColor(ofPoint depthPoint);
+	ofVec2f mapDepthToColor(ofPoint depthPoint, ofShortPixels& depthImage);
+	void mapDepthToColor(vector<ofVec2f>& colorPoints);
+	void mapDepthToColor(ofShortPixels& depthImage, vector<ofVec2f>& colorPoints);
+	void mapDepthToColor(vector<ofPoint>& depthPoint, vector<ofVec2f>& colorPoints);
+	void mapDepthToColor(vector<ofPoint>& depthPoint, ofShortPixels& depthImage, vector<ofVec2f>& colorPoints);
+	
+	/*	
 	ofVec3f mapColorToSkeleton(ofPoint colorPoint);
 	ofVec3f mapColorToSkeleton(ofPoint colorPoint, ofShortPixels& depthImage);
 	vector<ofVec3f> mapColorToSkeleton(vector<ofPoint>& colorPoints);
@@ -223,6 +225,9 @@ class ofxKinectCommonBridge : protected ofThread {
 
 	JointOrientation jointOrients[JointType_Count];
 	Joint joints[JointType_Count];
+
+	vector<ofPoint> allDepthFramePoints;
+	void cacheAllDepthFramePoints();
 
 	KCBBodyIndexFrame *pBodyIndexFrame, *pBodyIndexFrameBack;
 
