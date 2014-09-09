@@ -701,7 +701,7 @@ vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(){
 	return mapDepthToSkeleton(allDepthFramePoints);
 }
 
-vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(ofShortPixels& depthImage){
+vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(const ofShortPixels& depthImage){
 	cacheAllDepthFramePoints();
 	return mapDepthToSkeleton(allDepthFramePoints,depthImage);
 }
@@ -724,19 +724,19 @@ ofVec3f ofxKinectCommonBridge::mapDepthToSkeleton(ofPoint depthPoint){
 }
 
 //----------------------------------------------------------
-ofVec3f ofxKinectCommonBridge::mapDepthToSkeleton(ofPoint depthPoint, ofShortPixels& depthImage){
+ofVec3f ofxKinectCommonBridge::mapDepthToSkeleton(ofPoint depthPoint, const ofShortPixels& depthImage){
 	vector<ofPoint> pt;
 	pt.push_back(depthPoint);
 	return mapDepthToSkeleton(pt,depthImage)[0];
 }
 
 //----------------------------------------------------------
-vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(vector<ofPoint>& depthPoints){
+vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(const vector<ofPoint>& depthPoints){
 	return mapDepthToSkeleton(depthPoints, getRawDepthPixelsRef());
 }
 
 //----------------------------------------------------------
-vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(vector<ofPoint>& depthPoints, ofShortPixels& depthImage){
+vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(const vector<ofPoint>& depthPoints, const ofShortPixels& depthImage){
 	vector<DepthSpacePoint> depthPixels;
 	vector<UINT16> depths;
 	vector<CameraSpacePoint> cameraPoints;
@@ -794,18 +794,18 @@ void ofxKinectCommonBridge::mapDepthToColor(vector<ofVec2f>& colorPoints){
 }
 
 //----------------------------------------------------------
-void ofxKinectCommonBridge::mapDepthToColor(vector<ofPoint>& depthPoints, vector<ofVec2f>& colorPoints){
+void ofxKinectCommonBridge::mapDepthToColor(const vector<ofPoint>& depthPoints, vector<ofVec2f>& colorPoints){
 	return mapDepthToColor(depthPoints, getRawDepthPixelsRef(), colorPoints);
 }
 
 //----------------------------------------------------------
-void ofxKinectCommonBridge::mapDepthToColor(ofShortPixels& depthImage, vector<ofVec2f>& colorPoints){
+void ofxKinectCommonBridge::mapDepthToColor(const ofShortPixels& depthImage, vector<ofVec2f>& colorPoints){
 	cacheAllDepthFramePoints();
 	return mapDepthToColor(allDepthFramePoints,depthImage,colorPoints);
 }
 
 //----------------------------------------------------------
-void ofxKinectCommonBridge::mapDepthToColor(vector<ofPoint>& depthPoints, ofShortPixels& depthImage, vector<ofVec2f>& colorPointsOut){
+void ofxKinectCommonBridge::mapDepthToColor(const vector<ofPoint>& depthPoints, const ofShortPixels& depthImage, vector<ofVec2f>& colorPointsOut){
 	vector<DepthSpacePoint> depthPixels;
 	vector<UINT16> depths;
 	vector<ColorSpacePoint> colorPoints;
@@ -833,13 +833,75 @@ void ofxKinectCommonBridge::mapDepthToColor(vector<ofPoint>& depthPoints, ofShor
 	if(colorPointsOut.size() != colorPoints.size()){
 		colorPointsOut.resize(colorPoints.size());
 	}
-	vector<ofVec2f> points;
+
 	for(int i = 0; i < colorPoints.size(); i++){
 		ColorSpacePoint& p = colorPoints[int(depthPoints[i].y) * depthFrameDescription.width + int(depthPoints[i].x)]; 
 		colorPointsOut[i].set(ofVec2f(ofClamp(p.X,0,colorFrameDescription.width-1),
 									  ofClamp(p.Y,0,colorFrameDescription.height-1)) );
 	}
 }
+
+void ofxKinectCommonBridge::mapDepthToColor(ofPixels& dstColorPixels){
+	cacheAllDepthFramePoints();
+	mapDepthToColor(allDepthFramePoints,dstColorPixels);
+}
+
+void ofxKinectCommonBridge::mapDepthToColor(const ofShortPixels& depthImage, ofPixels& dstColorPixels){
+	cacheAllDepthFramePoints();
+	return mapDepthToColor(allDepthFramePoints,depthImage,dstColorPixels);
+}
+
+void ofxKinectCommonBridge::mapDepthToColor(const vector<ofPoint>& depthPoints, ofPixels& dstColorPixels){
+	return mapDepthToColor(depthPoints, getRawDepthPixelsRef(), dstColorPixels);
+
+}
+
+void ofxKinectCommonBridge::mapDepthToColor(const vector<ofPoint>& depthPoints, const ofShortPixels& depthImage, ofPixels& dstColorPixels){
+	vector<DepthSpacePoint> depthPixels;
+	vector<UINT16> depths;
+	vector<ColorSpacePoint> colorPoints;
+	
+	int depthArraySize = depthFrameDescription.width * depthFrameDescription.height;
+	depthPixels.resize(depthArraySize);
+	depths.resize(depthArraySize);
+	colorPoints.resize(depthArraySize);
+
+	for(int y = 0; y < depthFrameDescription.height; y++){
+		for(int x = 0; x < depthFrameDescription.width; x++) {
+			int i = y*depthFrameDescription.width+x;
+			depths[i] = (UINT16)depthImage.getPixels()[i];
+			depthPixels[i].X = x;
+			depthPixels[i].Y = y;
+		}
+	}
+
+	HRESULT mapResult;
+	mapResult = KCBMapDepthPointsToColorSpace(hKinect, 
+		depthArraySize, &depthPixels[0],
+		depthArraySize, &depths[0],
+		depthArraySize, &colorPoints[0]);
+
+	if(!dstColorPixels.isAllocated() || 
+		dstColorPixels.getWidth() != depthFrameDescription.width ||
+		dstColorPixels.getWidth() != depthFrameDescription.height)
+	{
+		dstColorPixels.allocate(depthFrameDescription.width,depthFrameDescription.height, OF_IMAGE_COLOR);
+	}
+
+	memset(dstColorPixels.getPixels(), 0, dstColorPixels.getWidth()*dstColorPixels.getHeight()*dstColorPixels.getBytesPerPixel());
+
+	for(int i = 0; i < colorPoints.size(); i++){
+		int depthFrameIndex = int(depthPoints[i].y) * depthFrameDescription.width + int(depthPoints[i].x);
+		ColorSpacePoint& p = colorPoints[depthFrameIndex]; 
+		if(p.X >= 0 && p.X < colorFrameDescription.width &&
+		   p.Y >= 0 && p.Y < colorFrameDescription.height)
+		{
+			dstColorPixels.setColor(depthPoints[i].x,depthPoints[i].y, videoPixels.getColor(p.X,p.Y));
+		}
+	}
+
+}
+
 
 /*
 //TODO
