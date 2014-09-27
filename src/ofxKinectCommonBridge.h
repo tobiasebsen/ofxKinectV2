@@ -65,6 +65,7 @@ class ofxKinectCommonBridge : protected ofThread {
 
 	void stop();
 
+	bool isStarted();
   	/// is the current frame new?
 	bool isFrameNew();
 	bool isFrameNewVideo();
@@ -125,7 +126,6 @@ class ofxKinectCommonBridge : protected ofThread {
 	vector<ofVec3f> mapDepthToSkeleton(const ofShortPixels& depthImage);
 	vector<ofVec3f> mapDepthToSkeleton(const vector<ofPoint>& depthPoints);
 	vector<ofVec3f> mapDepthToSkeleton(const vector<ofPoint>& depthPoints, const ofShortPixels& depthImage);
-	
 	
 	//get a coordinate in the color image back from a point in the depthImage
 	ofVec2f mapDepthToColor(ofPoint depthPoint);

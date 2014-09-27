@@ -97,6 +97,10 @@ void ofxKinectCommonBridge::updateDepthLookupTable()
 	}
 }
 
+bool ofxKinectCommonBridge::isStarted(){
+	return bStarted;
+}
+
 /// is the current frame new?
 bool ofxKinectCommonBridge::isFrameNew(){
 	return isFrameNewVideo() || isFrameNewDepth();
