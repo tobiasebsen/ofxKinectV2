@@ -53,17 +53,19 @@ class ofxKinectCommonBridge : protected ofThread {
   public:
 	
 	ofxKinectCommonBridge();
+	~ofxKinectCommonBridge();
 
 	// new API
-	bool initSensor( int id = 0 );
+	bool initSensor( );
 	bool initDepthStream( bool mapDepthToColor = false );
 	bool initColorStream(bool mapColorToDepth = false, ColorImageFormat format = ColorImageFormat_Rgba);
-	bool initIRStream( int width, int height );
+	bool initIRStream();
 	bool initSkeletonStream( bool seated );
 	bool start();
 
 	void stop();
 
+	bool isStarted();
   	/// is the current frame new?
 	bool isFrameNew();
 	bool isFrameNewVideo();
@@ -77,12 +79,19 @@ class ofxKinectCommonBridge : protected ofThread {
 	///
 	/// make sure to call this to update to the latest incoming frames
 	void update();
+
 	ofPixels& getColorPixelsRef();
-	ofPixels & getDepthPixelsRef();       	///< grayscale values
-	ofShortPixels & getRawDepthPixelsRef();	///< raw 11 bit values
+	ofPixels& getDepthPixelsRef();       	///< grayscale values
+	ofShortPixels& getRawDepthPixelsRef();	///< raw 11 bit values
+	ofFloatPixels& getFloatDepthPixelsRef();	///normalized 0 - 1, only works if setRawTextureUsesFloats is true
+	ofShortPixels& getIRPixelsRef();
+	vector<Kv2Skeleton> getSkeletons();
 
 	/// enable/disable frame loading into textures on update()
 	void setUseTexture(bool bUse);
+	/// In the programmable renderer, this will switch the raw texture over to using GL_R32F as opposed to GL_LUMINANCE16UI_EXT
+	/// This was because I was experiencing issues on some cards and the unsigned int extensions
+	void setRawTextureUsesFloats(bool bUseRawFloat);
 
 	/// draw the video texture
 	void draw(float x, float y, float w, float h);
@@ -102,22 +111,53 @@ class ofxKinectCommonBridge : protected ofThread {
 	void drawDepth(const ofPoint& point);
 	void drawDepth(const ofRectangle& rect);
 
-	void drawIR( float x, float y, float w, float h );
-
 	void drawBodyIndex(float x, float y);
 
-	//vector<Skeleton> &getSkeletons();
+	void drawSkeleton(int index);
 	void drawSkeleton(int index, ofVec2f scale);
+
+	void drawAllSkeletons();
 	void drawAllSkeletons(ofVec2f scale);
 
+	//given 2d depthPoint(s) in the depth image space, what are the 3d world positions?
+	ofVec3f mapDepthToSkeleton(ofPoint depthPoint);
+	ofVec3f mapDepthToSkeleton(ofPoint depthPoint, const ofShortPixels& depthImage);
+	vector<ofVec3f> mapDepthToSkeleton();
+	vector<ofVec3f> mapDepthToSkeleton(const ofShortPixels& depthImage);
+	vector<ofVec3f> mapDepthToSkeleton(const vector<ofPoint>& depthPoints);
+	vector<ofVec3f> mapDepthToSkeleton(const vector<ofPoint>& depthPoints, const ofShortPixels& depthImage);
+	
+	//get a coordinate in the color image back from a point in the depthImage
+	ofVec2f mapDepthToColor(ofPoint depthPoint);
+	ofVec2f mapDepthToColor(ofPoint depthPoint, ofShortPixels& depthImage);
+
+	//get a vector of color frame coordinates back from a set of depthFrame coordinates
+	void mapDepthToColor(vector<ofVec2f>& colorPoints);
+	void mapDepthToColor(const ofShortPixels& depthImage, vector<ofVec2f>& colorPoints);
+	void mapDepthToColor(const vector<ofPoint>& depthPoints, vector<ofVec2f>& colorPoints);
+	void mapDepthToColor(const vector<ofPoint>& depthPoints, const ofShortPixels& depthImage, vector<ofVec2f>& colorPoints);
+
+	//these mappings copy color pixels into the destination provided
+	//if dstColorPixels isn't allocated it will be forced to the same size as depthImage
+	void mapDepthToColor(ofPixels& dstColorPixels);
+	void mapDepthToColor(const ofShortPixels& depthImage, ofPixels& dstColorPixels);
+	void mapDepthToColor(const vector<ofPoint>& depthPoint, ofPixels& dstColorPixels);
+	void mapDepthToColor(const vector<ofPoint>& depthPoint, const ofShortPixels& depthImage, ofPixels& dstColorPixels);
+
+	/*	
+	ofVec3f mapColorToSkeleton(ofPoint colorPoint);
+	ofVec3f mapColorToSkeleton(ofPoint colorPoint, ofShortPixels& depthImage);
+	vector<ofVec3f> mapColorToSkeleton(vector<ofPoint>& colorPoints);
+	vector<ofVec3f> mapColorToSkeleton(vector<ofPoint>& colorPoints, ofShortPixels& depthImage);
+	*/
+
+	//will either be GL_R32F or GL_LUMINANCE16UI_EXT depending on texture setting
 	ofTexture &getRawDepthTexture() {
 		return rawDepthTex;
 	}
-
 	ofTexture &getDepthTexture() {
 		return depthTex;
 	}
-
 	ofTexture &getColorTexture() {
 		return videoTex;
 	}
@@ -153,9 +193,7 @@ class ofxKinectCommonBridge : protected ofThread {
   protected:
 
     KCBHANDLE hKinect;
-	//KINECT_IMAGE_FRAME_FORMAT depthFormat;
 	ColorImageFormat colorFormat;
-	//NUI_SKELETON_FRAME k4wSkeletons;
 
   	bool bInited;
 	bool bStarted;
@@ -171,11 +209,12 @@ class ofxKinectCommonBridge : protected ofThread {
 	float nearClipping, farClipping;
 
   	bool bUseTexture;
+	bool bUseFloatTexture;
+
 	ofTexture depthTex; ///< the depth texture
 	ofTexture rawDepthTex; ///<
 	ofTexture videoTex; ///< the RGB texture
 	ofTexture bodyIndexTex;
-	//ofTexture irTex;
 
 	ofPixels videoPixels;
 	ofPixels videoPixelsBack;			///< rgb back
@@ -183,11 +222,12 @@ class ofxKinectCommonBridge : protected ofThread {
 	ofPixels depthPixelsBack;
 	ofShortPixels depthPixelsRaw;
 	ofShortPixels depthPixelsRawBack;	///< depth back
-
-	ofShortPixels irPixelsRaw;
-	ofShortPixels irPixelsBackRaw;
-	ofPixels irPixels;
-	ofPixels irPixelsBack;
+	ofShortPixels depthPixelsRawFront;
+	ofFloatPixels depthPixelsNormalized;
+	
+	ofShortPixels irPixelsFront;
+	ofShortPixels irPixelsBack;
+	ofShortPixels irPixels;
 
 	ofPixels bodyIndexPixelsBack;
 	ofPixels bodyIndexPixels;
@@ -202,6 +242,7 @@ class ofxKinectCommonBridge : protected ofThread {
 
 	bool bNeedsUpdateBodyIndex;
 
+	bool bVideoIsColor;
 	bool bVideoIsInfrared;
 	bool bUsingSkeletons;
 	bool bUsingDepth;
@@ -223,6 +264,9 @@ class ofxKinectCommonBridge : protected ofThread {
 	JointOrientation jointOrients[JointType_Count];
 	Joint joints[JointType_Count];
 
+	vector<ofPoint> allDepthFramePoints;
+	void cacheAllDepthFramePoints();
+
 	KCBBodyIndexFrame *pBodyIndexFrame, *pBodyIndexFrameBack;
 
 	KCBFrameDescription colorFrameDescription;
@@ -231,4 +275,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	KCBFrameDescription bodyIndexFrameDescription;
 
 	pair<JointType, JointType> skeletonDrawOrder[JointType_Count];
+
+	void checkOpenGLError(string function);
+
 };

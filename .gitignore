@@ -18,12 +18,9 @@ xcuserdata/
 ipch/
 *.suo
 *.opensdf
-*.vcxproj.user
-*.vsxproj.filters
 
 *.obj
 *.tlog
-*.vcxproj.filters
 *.sdf
 *.pdb
 *.idb

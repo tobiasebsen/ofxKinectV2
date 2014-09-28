@@ -5,7 +5,8 @@ void testApp::setup(){
 
 	
 	kinect.initSensor();
-	kinect.initColorStream(true);
+	//kinect.initColorStream(true);
+	kinect.initIRStream();
 	kinect.initDepthStream(true);
 	kinect.initBodyIndexStream();
 	kinect.initSkeletonStream(true);
@@ -27,8 +28,9 @@ void testApp::draw()
 	
 	kinect.draw(0,0);
 
-	kinect.drawDepth(0, 0);
-	kinect.drawBodyIndex(500, 0);
+	//kinect v2 outputs depth/ir resolution of 512x424
+	kinect.drawDepth(0, ofGetHeight() - 424);
+	kinect.drawBodyIndex(512, ofGetHeight() - 424);
 	//kinect.drawAllSkeletons(ofVec2f(640,480));
 }
 
