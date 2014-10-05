@@ -127,23 +127,22 @@ class ofxKinectCommonBridge : protected ofThread {
 	vector<ofVec3f> mapDepthToSkeleton(const vector<ofPoint>& depthPoints);
 	vector<ofVec3f> mapDepthToSkeleton(const vector<ofPoint>& depthPoints, const ofShortPixels& depthImage);
 	
-	
 	//get a coordinate in the color image back from a point in the depthImage
-	ofVec2f mapDepthToColor(ofPoint depthPoint);
-	ofVec2f mapDepthToColor(ofPoint depthPoint, ofShortPixels& depthImage);
+	ofVec2f mapDepthToColor(ofPoint depthPoint, ofPoint shift = ofPoint(0,0));
+	ofVec2f mapDepthToColor(ofPoint depthPoint, ofShortPixels& depthImage, ofPoint shift = ofPoint(0,0));
 
 	//get a vector of color frame coordinates back from a set of depthFrame coordinates
-	void mapDepthToColor(vector<ofVec2f>& colorPoints);
-	void mapDepthToColor(const ofShortPixels& depthImage, vector<ofVec2f>& colorPoints);
-	void mapDepthToColor(const vector<ofPoint>& depthPoints, vector<ofVec2f>& colorPoints);
-	void mapDepthToColor(const vector<ofPoint>& depthPoints, const ofShortPixels& depthImage, vector<ofVec2f>& colorPoints);
+	void mapDepthToColor(vector<ofVec2f>& colorPoints, ofPoint shift = ofPoint(0,0) );
+	void mapDepthToColor(const ofShortPixels& depthImage, vector<ofVec2f>& colorPoints, ofPoint shift = ofPoint(0,0));
+	void mapDepthToColor(const vector<ofPoint>& depthPoints, vector<ofVec2f>& colorPoints, ofPoint shift = ofPoint(0,0));
+	void mapDepthToColor(const vector<ofPoint>& depthPoints, const ofShortPixels& depthImage, vector<ofVec2f>& colorPoints, ofPoint shift = ofPoint(0,0));
 
 	//these mappings copy color pixels into the destination provided
 	//if dstColorPixels isn't allocated it will be forced to the same size as depthImage
-	void mapDepthToColor(ofPixels& dstColorPixels);
-	void mapDepthToColor(const ofShortPixels& depthImage, ofPixels& dstColorPixels);
-	void mapDepthToColor(const vector<ofPoint>& depthPoint, ofPixels& dstColorPixels);
-	void mapDepthToColor(const vector<ofPoint>& depthPoint, const ofShortPixels& depthImage, ofPixels& dstColorPixels);
+	void mapDepthToColor(ofPixels& dstColorPixels, ofPoint shift = ofPoint(0,0));
+	void mapDepthToColor(const ofShortPixels& depthImage, ofPixels& dstColorPixels, ofPoint shift = ofPoint(0,0));
+	void mapDepthToColor(const vector<ofPoint>& depthPoint, ofPixels& dstColorPixels, ofPoint shift = ofPoint(0,0));
+	void mapDepthToColor(const vector<ofPoint>& depthPoint, const ofShortPixels& depthImage, ofPixels& dstColorPixels, ofPoint shift = ofPoint(0,0));
 
 	/*	
 	ofVec3f mapColorToSkeleton(ofPoint colorPoint);
