@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\testApp.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ofxKinectCommonBridge.cpp">
+      <Filter>ofxKinectV2\src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\testApp.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ofxKinectCommonBridge.h">
+      <Filter>ofxKinectV2\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\KCBv2\include\KCBv2Lib.h">
+      <Filter>ofxKinectV2\libs</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="icon.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="ofxKinectV2">
+      <UniqueIdentifier>{5c51b06f-4c1f-43f5-9259-0d1cc30f1361}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{24226d24-67ee-4cec-9cac-3b041379d950}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ofxKinectV2\src">
+      <UniqueIdentifier>{867ee75b-9ccf-4ea2-ae82-79b385346088}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ofxKinectV2\libs">
+      <UniqueIdentifier>{6f3995fb-d1cb-48ac-9027-c5b9c81ff305}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
