@@ -4,6 +4,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <IncludePath>$(KINECTSDK20_DIR)inc;$(KINECT_TOOLKIT_DIR)inc;$(IncludePath)</IncludePath>
+    <LibraryPath>$(KINECTSDK20_DIR)\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
