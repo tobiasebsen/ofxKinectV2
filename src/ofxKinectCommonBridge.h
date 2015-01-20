@@ -25,6 +25,16 @@ class Kv2Joint
 		return jointPosition;
 	}
 
+	void setPositionDepthSpace(ofVec2f depthSpace)
+	{
+		jointPositionDepthSpace = depthSpace;	
+	}
+
+	ofVec2f getPositionDepthSpace()
+	{
+		return jointPositionDepthSpace;
+	}
+
 	ofQuaternion getOrientation()
 	{
 		return jointOrientation;
@@ -37,6 +47,8 @@ class Kv2Joint
 
   protected:
 	ofVec3f jointPosition;
+	ofVec3f jointPositionDepthSpace;
+
 	ofQuaternion jointOrientation;
 	JointType type;
 	TrackingState trackingState;
@@ -87,6 +99,8 @@ class ofxKinectCommonBridge : protected ofThread {
 	ofShortPixels& getIRPixelsRef();
 	vector<Kv2Skeleton> getSkeletons();
 
+	void calculateDepthSpacePosition(Kv2Skeleton& skeleton);
+
 	/// enable/disable frame loading into textures on update()
 	void setUseTexture(bool bUse);
 	/// In the programmable renderer, this will switch the raw texture over to using GL_R32F as opposed to GL_LUMINANCE16UI_EXT
@@ -126,7 +140,12 @@ class ofxKinectCommonBridge : protected ofThread {
 	vector<ofVec3f> mapDepthToSkeleton(const ofShortPixels& depthImage);
 	vector<ofVec3f> mapDepthToSkeleton(const vector<ofPoint>& depthPoints);
 	vector<ofVec3f> mapDepthToSkeleton(const vector<ofPoint>& depthPoints, const ofShortPixels& depthImage);
-	
+
+	//get the 2d image space coordinates in the depth image from 3D points
+	//useful for drawing skeletons in 2D overlaying the depth image
+	ofVec2f mapSkeletonToDepth(ofVec3f skeletonPoint);
+	void mapSkeletonToDepth(const vector<ofVec3f>& skeletonPositions, vector<ofVec2f>& depthPositions);
+
 	//get a coordinate in the color image back from a point in the depthImage
 	ofVec2f mapDepthToColor(ofPoint depthPoint, ofPoint shift = ofPoint(0,0));
 	ofVec2f mapDepthToColor(ofPoint depthPoint, ofShortPixels& depthImage, ofPoint shift = ofPoint(0,0));

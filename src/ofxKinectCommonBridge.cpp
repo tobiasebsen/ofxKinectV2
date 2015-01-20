@@ -691,7 +691,7 @@ bool ofxKinectCommonBridge::start()
 	if(bStarted){
 		return false;
 	}
-	startThread(true, false);
+	startThread(true);
 	bStarted = true;	
 	return true;
 }
@@ -771,6 +771,41 @@ vector<ofVec3f> ofxKinectCommonBridge::mapDepthToSkeleton(const vector<ofPoint>&
 		points.push_back( ofVec3f(p.X,p.Y,p.Z) );
 	}
 	return points;
+}
+
+//----------------------------------------------------------
+ofVec2f ofxKinectCommonBridge::mapSkeletonToDepth(ofVec3f skeletonPoint){
+	CameraSpacePoint csp;
+	csp.X = skeletonPoint.x;
+	csp.Y = skeletonPoint.y;
+	csp.Z = skeletonPoint.z;
+	DepthSpacePoint dsp;
+	KCBMapCameraPointToDepthSpace(hKinect, csp, &dsp);
+	return ofVec2f(dsp.X,dsp.Y);
+}
+
+//----------------------------------------------------------
+void ofxKinectCommonBridge::mapSkeletonToDepth(const vector<ofVec3f>& skeletonPositions, vector<ofVec2f>& depthPositions){
+   	vector<CameraSpacePoint> cameraPoints;
+	vector<DepthSpacePoint> depthPoints;
+	cameraPoints.resize(skeletonPositions.size());
+	depthPositions.resize(skeletonPositions.size());
+	depthPoints.resize(skeletonPositions.size());
+
+	for(int i = 0; i < skeletonPositions.size(); i++){
+		cameraPoints[i].X = skeletonPositions[i].x;
+		cameraPoints[i].Y = skeletonPositions[i].y;
+		cameraPoints[i].Z = skeletonPositions[i].z;
+	}
+
+	KCBMapCameraPointsToDepthSpace(hKinect,
+		skeletonPositions.size(), &cameraPoints[0],
+		depthPoints.size(), &depthPoints[0]);
+
+	for(int i = 0; i < depthPoints.size(); i++){
+		depthPositions[i].x = depthPoints[i].X;
+		depthPositions[i].y = depthPoints[i].Y;
+	}
 }
 
 //----------------------------------------------------------
@@ -988,6 +1023,26 @@ void ofxKinectCommonBridge::stop() {
 
 	}
 }	
+
+//----------------------------------------------------------
+void ofxKinectCommonBridge::calculateDepthSpacePosition(Kv2Skeleton& skeleton){
+	vector<ofVec3f> cameraSpacePositions;
+	vector<ofVec2f> depthSpace;
+	map<JointType, int> jointIndex;
+	map<JointType, Kv2Joint>::iterator it;
+	
+	int index = 0;
+	for(it = skeleton.joints.begin(); it != skeleton.joints.end(); it++){
+		cameraSpacePositions.push_back(it->second.getPosition());
+		jointIndex[it->first] = index++;
+	}
+
+	mapSkeletonToDepth(cameraSpacePositions, depthSpace);
+
+	for(it = skeleton.joints.begin(); it != skeleton.joints.end(); it++){
+		it->second.setPositionDepthSpace( depthSpace[jointIndex[it->first]] );
+	}
+}
 
 //----------------------------------------------------------
 void ofxKinectCommonBridge::threadedFunction(){
