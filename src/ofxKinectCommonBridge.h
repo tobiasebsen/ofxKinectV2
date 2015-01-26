@@ -57,6 +57,9 @@ class Kv2Joint
 class Kv2Skeleton
 {
   public:
+	Kv2Skeleton(){
+		tracked = false;
+	}
 	bool tracked;
 	map<JointType, Kv2Joint> joints;
 };
