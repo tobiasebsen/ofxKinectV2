@@ -173,6 +173,8 @@ class ofxKinectCommonBridge : protected ofThread {
 	vector<ofVec3f> mapColorToSkeleton(vector<ofPoint>& colorPoints, ofShortPixels& depthImage);
 	*/
 
+	void getDepthFrameToCameraSpaceTable(vector<ofVec2f> & table);
+
 	//will either be GL_R32F or GL_LUMINANCE16UI_EXT depending on texture setting
 	ofTexture &getRawDepthTexture() {
 		return rawDepthTex;

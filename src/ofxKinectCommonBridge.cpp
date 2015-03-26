@@ -998,6 +998,21 @@ vector<ofVec3f> ofxKinectCommonBridge::mapColorToSkeleton(vector<ofPoint>& color
 */
 
 //----------------------------------------------------------
+void ofxKinectCommonBridge::getDepthFrameToCameraSpaceTable(vector<ofVec2f> & table) {
+	
+	UINT32 size;
+	PointF* points;
+	HRESULT hr;
+	hr = GetDepthFrameToCameraSpaceTable(hKinect, &size, &points);
+	if(SUCCEEDED(hr))
+	{
+		table.resize(size);
+		memcpy(table.data(), points, size * sizeof(PointF));
+		CoTaskMemFree(points);
+	}
+}
+
+//----------------------------------------------------------
 void ofxKinectCommonBridge::stop() {
 	if(bStarted){
 		
