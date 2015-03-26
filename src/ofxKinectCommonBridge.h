@@ -109,6 +109,7 @@ class ofxKinectCommonBridge : protected ofThread {
 	/// In the programmable renderer, this will switch the raw texture over to using GL_R32F as opposed to GL_LUMINANCE16UI_EXT
 	/// This was because I was experiencing issues on some cards and the unsigned int extensions
 	void setRawTextureUsesFloats(bool bUseRawFloat);
+	void setUseDepthLookup(bool bUseDepthLookup);
 
 	/// draw the video texture
 	void draw(float x, float y, float w, float h);
@@ -205,6 +206,7 @@ class ofxKinectCommonBridge : protected ofThread {
 
   	bool bUseTexture;
 	bool bUseFloatTexture;
+	bool bUseDepthLookup;
 
 	ofTexture depthTex; ///< the depth texture
 	ofTexture rawDepthTex; ///<

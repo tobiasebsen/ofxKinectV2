@@ -30,6 +30,7 @@ ofxKinectCommonBridge::ofxKinectCommonBridge(){
 	bUsingDepth = false;
   	bUseTexture = true;
 	bUseFloatTexture = false;
+	bUseDepthLookup = true;
 	bProgrammableRenderer = false;
 	
 	setDepthClipping();
@@ -181,10 +182,16 @@ void ofxKinectCommonBridge::update()
 		bIsFrameNewDepth = true;
 		bNeedsUpdateDepth = false;
 
-		for(int i = 0; i < depthPixels.getWidth()*depthPixels.getHeight(); i++) {
-			depthPixelsRaw.getPixels()[i] = pDepthFrame->Buffer[i];
-			depthPixels.getPixels()[i]    = depthLookupTable[ofClamp(depthPixelsRaw.getPixels()[i], 0, depthLookupTable.size() - 1)];
-			if(bUseFloatTexture){
+		memcpy(depthPixelsRaw.getPixels(), pDepthFrame->Buffer, depthPixels.getWidth()*depthPixels.getHeight()*sizeof(unsigned short));
+
+		if(bUseDepthLookup) {
+			for(int i = 0; i < depthPixels.getWidth()*depthPixels.getHeight(); i++) {
+				depthPixels.getPixels()[i]    = depthLookupTable[ofClamp(depthPixelsRaw.getPixels()[i], 0, depthLookupTable.size() - 1)];
+			}
+		}
+
+		if(bUseFloatTexture){
+			for(int i = 0; i < depthPixels.getWidth()*depthPixels.getHeight(); i++) {
 				depthPixelsNormalized.getPixels()[i] =  depthPixelsRaw.getPixels()[i] / 65535.0f;
 			}
 		}
@@ -284,6 +291,11 @@ void ofxKinectCommonBridge::setUseTexture(bool bUse){
 
 void ofxKinectCommonBridge::setRawTextureUsesFloats(bool bUseRawFloat){
 	bUseFloatTexture = true;
+}
+
+//------------------------------------
+void ofxKinectCommonBridge::setUseDepthLookup(bool bUse){
+	bUseDepthLookup = bUse;
 }
 
 //----------------------------------------------------------
